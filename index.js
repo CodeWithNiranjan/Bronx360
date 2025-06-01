@@ -1,18 +1,56 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Fetch recent reports
-    fetch('http://localhost:3000/api/reports?limit=3')
-        .then(response => response.json())
-        .then(reports => {
-            const recentReportsContainer = document.getElementById('recentReports');
-            
-            reports.forEach(report => {
-                const reportCard = createReportCard(report);
-                recentReportsContainer.appendChild(reportCard);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching recent reports:', error);
+document.addEventListener('DOMContentLoaded', () => {
+    const BACKEND_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000'
+        : 'https://bronx360-backend.onrender.com';
+
+    // Initialize map
+    const map = L.map('map').setView([40.8448, -73.8648], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Fetch and display reports
+    async function fetchReports() {
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/reports`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch reports');
+            }
+            const reports = await response.json();
+            displayReports(reports);
+        } catch (error) {
+            console.error('Error fetching reports:', error);
+            showAlert('Failed to load reports. Please try again.', 'danger');
+        }
+    }
+
+    // Display reports on map
+    function displayReports(reports) {
+        reports.forEach(report => {
+            const marker = L.marker([report.latitude, report.longitude])
+                .bindPopup(`
+                    <strong>${report.issueType}</strong><br>
+                    ${report.description}<br>
+                    <small>Status: ${report.status}</small>
+                `)
+                .addTo(map);
         });
+    }
+
+    // Show alert
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+        setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    // Initial load
+    fetchReports();
 });
 
 function createReportCard(report) {

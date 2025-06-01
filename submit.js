@@ -3,7 +3,11 @@ let map;
 let marker;
 
 // Initialize the map when the page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
+    const BACKEND_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000'
+        : 'https://bronx360-backend.onrender.com';
+
     console.log('DOM Content Loaded');
     
     // Check if Leaflet is available
@@ -122,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             console.log('Sending request to server...');
-            const response = await fetch('http://localhost:3000/api/reports', {
+            const response = await fetch(`${BACKEND_URL}/api/reports`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -153,4 +157,16 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Failed to submit report: ' + error.message);
         }
     });
+
+    // Show alert
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container').insertBefore(alertDiv, form);
+        setTimeout(() => alertDiv.remove(), 5000);
+    }
 }); 

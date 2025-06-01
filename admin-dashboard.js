@@ -16,12 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let reports = [];
 
+    // Get the backend URL from environment or use default
+    const BACKEND_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000'
+        : 'https://bronx360-backend.onrender.com';
+
     // Fetch reports
     async function fetchReports() {
         try {
-            const response = await fetch('http://localhost:3000/api/admin/reports', {
+            const response = await fetch(`${BACKEND_URL}/api/admin/reports`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 }
             });
 
@@ -147,11 +152,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             console.log('Saving report changes:', { reportId, status, adminNotes });
             
-            const response = await fetch(`http://localhost:3000/api/admin/reports/${reportId}`, {
+            const response = await fetch(`${BACKEND_URL}/api/admin/reports/${reportId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 },
                 body: JSON.stringify({ 
                     status, 
