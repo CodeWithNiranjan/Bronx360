@@ -3,11 +3,13 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # or master, depending on your default branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
 
@@ -19,8 +21,20 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Copy Frontend Files
+        run: |
+          mkdir -p dist
+          cp -r frontend/* dist/
+          cp frontend/index.html dist/
+          cp frontend/styles.css dist/
+          cp frontend/admin-login.html dist/
+          cp frontend/admin-dashboard.html dist/
+          cp frontend/reports.html dist/
+          cp frontend/submit.html dist/
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: frontend
-          branch: gh-pages 
+          folder: dist
+          branch: gh-pages
+          clean: true 
