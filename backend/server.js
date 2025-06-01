@@ -9,12 +9,13 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Middleware
 app.use(cors({
     origin: [
         'http://localhost:3000',
-        'https://YOUR_USERNAME.github.io',
+        'https://codewithniranjan.github.io',
         'https://bronx360-backend.onrender.com'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -62,26 +63,21 @@ const db = new sqlite3.Database(path.join(__dirname, 'bronx360.db'), (err) => {
             }
         });
 
-        // Create default admin if none exists
-        db.get("SELECT COUNT(*) as count FROM admins", [], async (err, row) => {
-            if (err) {
-                console.error('Error checking admin count:', err);
-                return;
-            }
-            if (row.count === 0) {
-                const hashedPassword = await bcrypt.hash('admin123', 10);
-                db.run("INSERT INTO admins (username, password) VALUES (?, ?)", 
-                    ['admin', hashedPassword], 
-                    (err) => {
-                        if (err) {
-                            console.error('Error creating default admin:', err);
-                        } else {
-                            console.log('Default admin created');
-                        }
+        // Always upsert default admin on startup
+        (async () => {
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            db.run(
+                "INSERT OR REPLACE INTO admins (id, username, password) VALUES ((SELECT id FROM admins WHERE username = ?), ?, ?)",
+                ['admin', 'admin', hashedPassword],
+                (err) => {
+                    if (err) {
+                        console.error('Error upserting default admin:', err);
+                    } else {
+                        console.log('Default admin ensured');
                     }
-                );
-            }
-        });
+                }
+            );
+        })();
     }
 });
 
@@ -134,7 +130,7 @@ app.post('/api/admin/login', async (req, res) => {
 
                 const token = jwt.sign(
                     { id: admin.id, username: admin.username },
-                    'your-secret-key',
+                    JWT_SECRET,
                     { expiresIn: '24h' }
                 );
 
@@ -319,6 +315,11 @@ app.get('/api/reports/:id', (req, res) => {
         }
         res.json(row);
     });
+});
+
+// Add a health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
 });
 
 // Start server
