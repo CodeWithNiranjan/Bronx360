@@ -41,9 +41,9 @@ jobs:
           cp frontend/app.js dist/
           # Copy image files
           cp frontend/Bronx360.png dist/
-          # Update image paths in HTML files to use relative paths
-          sed -i 's|href="Bronx360.png"|href="./Bronx360.png"|g' dist/*.html
-          sed -i 's|src="Bronx360.png"|src="./Bronx360.png"|g' dist/*.html
+          # Update image paths in HTML files for GitHub Pages
+          sed -i 's|href="Bronx360.png"|href="/Bronx360/Bronx360.png"|g' dist/*.html
+          sed -i 's|src="Bronx360.png"|src="/Bronx360/Bronx360.png"|g' dist/*.html
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
