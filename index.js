@@ -17,7 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Failed to fetch reports');
             }
             const reports = await response.json();
-            displayReports(reports);
+            
+            // Sort reports by date (newest first) and take only the 6 most recent
+            const recentReports = reports
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 6);
+            
+            displayReports(recentReports);
+            displayRecentReports(recentReports);
         } catch (error) {
             console.error('Error fetching reports:', error);
             showAlert('Failed to load reports. Please try again.', 'danger');
@@ -34,6 +41,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     <small>Status: ${report.status}</small>
                 `)
                 .addTo(map);
+        });
+    }
+
+    // Display recent reports in the home page
+    function displayRecentReports(reports) {
+        const recentReportsContainer = document.getElementById('recentReports');
+        if (!recentReportsContainer) return;
+
+        recentReportsContainer.innerHTML = ''; // Clear existing content
+        
+        if (reports.length === 0) {
+            recentReportsContainer.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No reports available yet. Be the first to submit a report!
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        reports.forEach(report => {
+            const reportCard = createReportCard(report);
+            recentReportsContainer.appendChild(reportCard);
         });
     }
 
@@ -67,19 +98,20 @@ function createReportCard(report) {
         <div class="card report-card h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="report-type ${report.type}">
-                        <i class="bi bi-${getTypeIcon(report.type)}"></i>
-                        ${report.type}
+                    <span class="report-type ${report.issueType.toLowerCase()}">
+                        <i class="bi bi-${getTypeIcon(report.issueType)}"></i>
+                        ${report.issueType}
                     </span>
                     <span class="report-status ${statusClass}">
                         ${report.status}
                     </span>
                 </div>
+                <h5 class="card-title">${report.title}</h5>
                 <p class="report-description">${report.description}</p>
                 <div class="report-meta">
                     <span>
                         <i class="bi bi-calendar"></i>
-                        ${new Date(report.created_at).toLocaleDateString()}
+                        ${new Date(report.createdAt).toLocaleDateString()}
                     </span>
                     <span>
                         <i class="bi bi-geo-alt"></i>
@@ -101,5 +133,5 @@ function getTypeIcon(type) {
         'garbage': 'trash',
         'other': 'exclamation-circle'
     };
-    return icons[type] || 'exclamation-circle';
+    return icons[type.toLowerCase()] || 'exclamation-circle';
 } 
