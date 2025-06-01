@@ -39,7 +39,11 @@ jobs:
           cp frontend/reports.js dist/
           cp frontend/submit.js dist/
           cp frontend/app.js dist/
+          # Copy image files
           cp frontend/Bronx360.png dist/
+          # Update image paths in HTML files
+          sed -i 's|href="Bronx360.png"|href="/Bronx360/Bronx360.png"|g' dist/*.html
+          sed -i 's|src="Bronx360.png"|src="/Bronx360/Bronx360.png"|g' dist/*.html
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
