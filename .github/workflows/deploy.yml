@@ -3,11 +3,14 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # or master, depending on your default branch
+      - main
+      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
 
@@ -23,4 +26,5 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: frontend
-          branch: gh-pages 
+          branch: gh-pages
+          clean: true 
