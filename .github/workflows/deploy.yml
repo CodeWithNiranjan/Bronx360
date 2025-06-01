@@ -24,13 +24,21 @@ jobs:
       - name: Copy Frontend Files
         run: |
           mkdir -p dist
-          cp -r frontend/* dist/
+          # Copy HTML files
           cp frontend/index.html dist/
-          cp frontend/styles.css dist/
           cp frontend/admin-login.html dist/
           cp frontend/admin-dashboard.html dist/
           cp frontend/reports.html dist/
           cp frontend/submit.html dist/
+          # Copy CSS files
+          cp frontend/styles.css dist/
+          # Copy JavaScript files
+          cp frontend/index.js dist/
+          cp frontend/admin-login.js dist/
+          cp frontend/admin-dashboard.js dist/
+          cp frontend/reports.js dist/
+          cp frontend/submit.js dist/
+          cp frontend/app.js dist/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
