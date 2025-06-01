@@ -39,6 +39,7 @@ jobs:
           cp frontend/reports.js dist/
           cp frontend/submit.js dist/
           cp frontend/app.js dist/
+          cp frontend/Bronx360.png dist/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
