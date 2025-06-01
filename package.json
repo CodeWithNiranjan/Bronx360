@@ -1,0 +1,41 @@
+{
+  "name": "bronx360",
+  "version": "1.0.0",
+  "description": "A community reporting platform for the Bronx",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_USERNAME/Bronx360.git"
+  },
+  "keywords": [
+    "community",
+    "reporting",
+    "bronx",
+    "map",
+    "nodejs",
+    "express"
+  ],
+  "author": "YOUR_NAME",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/Bronx360/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/Bronx360#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+} 

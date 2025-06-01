@@ -1,0 +1,13 @@
+{
+  "name": "bronx360-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Bronx360 community reporting application",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server -p 8080",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+} 
