@@ -9,9 +9,18 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'bronx360-secret-key';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:3000',
+        'https://codewithniranjan.github.io',
+        'https://bronx360-backend.onrender.com'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(bodyParser.json());
 
 // Database setup
@@ -51,27 +60,52 @@ const db = new sqlite3.Database(path.join(__dirname, 'bronx360.db'), (err) => {
                 console.error('Error creating admins table:', err);
             } else {
                 console.log('Admins table created or already exists');
-            }
-        });
-
-        // Create default admin if none exists
-        db.get("SELECT COUNT(*) as count FROM admins", [], async (err, row) => {
-            if (err) {
-                console.error('Error checking admin count:', err);
-                return;
-            }
-            if (row.count === 0) {
-                const hashedPassword = await bcrypt.hash('admin123', 10);
-                db.run("INSERT INTO admins (username, password) VALUES (?, ?)", 
-                    ['admin', hashedPassword], 
-                    (err) => {
-                        if (err) {
-                            console.error('Error creating default admin:', err);
-                        } else {
-                            console.log('Default admin created');
-                        }
+                
+                // Always upsert default admin on startup
+                (async () => {
+                    try {
+                        const hashedPassword = await bcrypt.hash('admin123', 10);
+                        console.log('Generated hashed password for admin');
+                        
+                        // First, check if admin exists
+                        db.get('SELECT * FROM admins WHERE username = ?', ['admin'], (err, admin) => {
+                            if (err) {
+                                console.error('Error checking admin existence:', err);
+                                return;
+                            }
+                            
+                            if (!admin) {
+                                // Insert new admin
+                                db.run(
+                                    'INSERT INTO admins (username, password) VALUES (?, ?)',
+                                    ['admin', hashedPassword],
+                                    (err) => {
+                                        if (err) {
+                                            console.error('Error creating default admin:', err);
+                                        } else {
+                                            console.log('Default admin created successfully');
+                                        }
+                                    }
+                                );
+                            } else {
+                                // Update existing admin
+                                db.run(
+                                    'UPDATE admins SET password = ? WHERE username = ?',
+                                    [hashedPassword, 'admin'],
+                                    (err) => {
+                                        if (err) {
+                                            console.error('Error updating default admin:', err);
+                                        } else {
+                                            console.log('Default admin updated successfully');
+                                        }
+                                    }
+                                );
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error in admin initialization:', error);
                     }
-                );
+                })();
             }
         });
     }
@@ -86,7 +120,7 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({ error: 'Authentication required' });
     }
 
-    jwt.verify(token, 'your-secret-key', (err, user) => {
+    jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
             return res.status(403).json({ error: 'Invalid token' });
         }
@@ -118,6 +152,7 @@ app.post('/api/admin/login', async (req, res) => {
             }
 
             try {
+                console.log('Comparing passwords for admin:', username);
                 const validPassword = await bcrypt.compare(password, admin.password);
                 if (!validPassword) {
                     console.error('Invalid password for admin:', username);
@@ -126,7 +161,7 @@ app.post('/api/admin/login', async (req, res) => {
 
                 const token = jwt.sign(
                     { id: admin.id, username: admin.username },
-                    'your-secret-key',
+                    JWT_SECRET,
                     { expiresIn: '24h' }
                 );
 
@@ -311,6 +346,11 @@ app.get('/api/reports/:id', (req, res) => {
         }
         res.json(row);
     });
+});
+
+// Add a health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
 });
 
 // Start server

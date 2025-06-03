@@ -1,0 +1,53 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Copy Frontend Files
+        run: |
+          mkdir -p dist
+          # Copy HTML files
+          cp frontend/index.html dist/
+          cp frontend/admin-login.html dist/
+          cp frontend/admin-dashboard.html dist/
+          cp frontend/reports.html dist/
+          cp frontend/submit.html dist/
+          # Copy CSS files
+          cp frontend/styles.css dist/
+          # Copy JavaScript files
+          cp frontend/index.js dist/
+          cp frontend/admin-login.js dist/
+          cp frontend/admin-dashboard.js dist/
+          cp frontend/reports.js dist/
+          cp frontend/submit.js dist/
+          cp frontend/app.js dist/
+          # Copy image files
+          cp frontend/Bronx360.png dist/
+          # Update image paths in HTML files for GitHub Pages
+          sed -i 's|href="Bronx360.png"|href="/Bronx360/Bronx360.png"|g' dist/*.html
+          sed -i 's|src="Bronx360.png"|src="/Bronx360/Bronx360.png"|g' dist/*.html
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          clean: true 

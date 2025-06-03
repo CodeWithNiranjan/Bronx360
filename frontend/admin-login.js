@@ -3,6 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
 
+    // Get the backend URL from environment or use default
+    const BACKEND_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000'
+        : 'https://bronx360-backend.onrender.com';
+
     // Show alert
     function showAlert(message, type) {
         const alertDiv = document.createElement('div');
@@ -29,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             console.log('Attempting login for:', username);
-            const response = await fetch('http://localhost:3000/api/admin/login', {
+            const response = await fetch(`${BACKEND_URL}/api/admin/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
