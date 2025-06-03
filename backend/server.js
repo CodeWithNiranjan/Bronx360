@@ -60,24 +60,54 @@ const db = new sqlite3.Database(path.join(__dirname, 'bronx360.db'), (err) => {
                 console.error('Error creating admins table:', err);
             } else {
                 console.log('Admins table created or already exists');
+                
+                // Always upsert default admin on startup
+                (async () => {
+                    try {
+                        const hashedPassword = await bcrypt.hash('admin123', 10);
+                        console.log('Generated hashed password for admin');
+                        
+                        // First, check if admin exists
+                        db.get('SELECT * FROM admins WHERE username = ?', ['admin'], (err, admin) => {
+                            if (err) {
+                                console.error('Error checking admin existence:', err);
+                                return;
+                            }
+                            
+                            if (!admin) {
+                                // Insert new admin
+                                db.run(
+                                    'INSERT INTO admins (username, password) VALUES (?, ?)',
+                                    ['admin', hashedPassword],
+                                    (err) => {
+                                        if (err) {
+                                            console.error('Error creating default admin:', err);
+                                        } else {
+                                            console.log('Default admin created successfully');
+                                        }
+                                    }
+                                );
+                            } else {
+                                // Update existing admin
+                                db.run(
+                                    'UPDATE admins SET password = ? WHERE username = ?',
+                                    [hashedPassword, 'admin'],
+                                    (err) => {
+                                        if (err) {
+                                            console.error('Error updating default admin:', err);
+                                        } else {
+                                            console.log('Default admin updated successfully');
+                                        }
+                                    }
+                                );
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error in admin initialization:', error);
+                    }
+                })();
             }
         });
-
-        // Always upsert default admin on startup
-        (async () => {
-            const hashedPassword = await bcrypt.hash('admin123', 10);
-            db.run(
-                "INSERT OR REPLACE INTO admins (id, username, password) VALUES ((SELECT id FROM admins WHERE username = ?), ?, ?)",
-                ['admin', 'admin', hashedPassword],
-                (err) => {
-                    if (err) {
-                        console.error('Error upserting default admin:', err);
-                    } else {
-                        console.log('Default admin ensured');
-                    }
-                }
-            );
-        })();
     }
 });
 
@@ -122,6 +152,7 @@ app.post('/api/admin/login', async (req, res) => {
             }
 
             try {
+                console.log('Comparing passwords for admin:', username);
                 const validPassword = await bcrypt.compare(password, admin.password);
                 if (!validPassword) {
                     console.error('Invalid password for admin:', username);
